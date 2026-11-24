@@ -1,0 +1,20 @@
+$kind: http-request
+name: "Error: finalizar sin pasar por En curso"
+description: ""
+url: "{{baseUrl}}/api/solicitudes/{{numeroSolicitud}}/estado"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "idEstadoSolicitud": 4
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Responde 400', function () { pm.response.to.have.status(400); });
+      pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });
+    language: text/javascript
+order: 10000

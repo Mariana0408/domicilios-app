@@ -1,0 +1,17 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api/solicitudes/{{numeroSolicitud}}/estado"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "idEstadoSolicitud": 4
+    }
+scripts:
+  - type: afterResponse
+    code: pm.test('Responde 200', function () { pm.response.to.have.status(200); });
+    language: text/javascript
+order: 4000

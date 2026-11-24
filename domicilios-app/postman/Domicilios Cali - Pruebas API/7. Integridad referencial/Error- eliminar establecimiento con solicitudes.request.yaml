@@ -1,0 +1,12 @@
+$kind: http-request
+name: "Error: eliminar establecimiento con solicitudes"
+description: ""
+url: "{{baseUrl}}/api/establecimientos/{{idEstablecimiento}}"
+method: DELETE
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Responde 409', function () { pm.response.to.have.status(409); });
+      pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });
+    language: text/javascript
+order: 2000

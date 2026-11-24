@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gestión de Domicilios · Cali</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+<header class="barra">
+    <div class="marca">
+        <span class="logo">🛵</span>
+        <div>
+            <h1>Gestión de Domicilios</h1>
+            <p>Cali · Proyecto Integrador Bases de Datos 1</p>
+        </div>
+    </div>
+    <nav id="pestanas">
+        <button data-entidad="solicitudes">Solicitudes</button>
+        <button data-entidad="clientes">Clientes</button>
+        <button data-entidad="direcciones">Direcciones</button>
+        <button data-entidad="domiciliarios">Domiciliarios</button>
+        <button data-entidad="establecimientos">Establecimientos</button>
+        <button data-entidad="incidentes">Incidentes</button>
+    </nav>
+</header>
+
+<main>
+    <div class="encabezado">
+        <div>
+            <h2 id="titulo">Solicitudes</h2>
+            <p id="conteo" class="tenue"></p>
+        </div>
+        <div class="herramientas">
+            <input id="buscar" type="search" placeholder="Buscar en la tabla…">
+            <button id="recargar" class="secundario" title="Volver a consultar la base de datos">↻ Recargar</button>
+            <button id="nuevo" class="primario">+ Nuevo</button>
+        </div>
+    </div>
+
+    <div class="contenedor-tabla">
+        <table id="tabla">
+            <thead></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</main>
+
+<!-- Ventana para crear / editar / asignar / cambiar estado -->
+<dialog id="dialogo">
+    <form id="formulario" novalidate>
+        <h3 id="tituloDialogo"></h3>
+        <div id="campos"></div>
+        <p id="errorDialogo" class="error" hidden></p>
+        <div class="botones">
+            <button type="button" id="cancelar" class="secundario">Cancelar</button>
+            <button type="submit" class="primario">Guardar</button>
+        </div>
+    </form>
+</dialog>
+
+<div id="aviso" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>

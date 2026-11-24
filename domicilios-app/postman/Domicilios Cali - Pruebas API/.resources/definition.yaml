@@ -1,0 +1,11 @@
+$kind: collection
+description: "Pruebas del backend del Proyecto Integrador (Bases de Datos 1, UAO). Ejecute la colección completa en orden con el Collection Runner: crea datos de prueba, valida las reglas de negocio y al final los elimina."
+variables:
+  baseUrl: http://localhost:8080
+  idClientePrueba: "1000000099"
+  idDomiciliarioPrueba: "1000000098"
+  idDireccion: ""
+  idEstablecimiento: ""
+  numeroSolicitud: ""
+  numeroSolicitudExterna: ""
+  codigoIncidente: ""

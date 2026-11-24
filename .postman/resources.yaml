@@ -1,0 +1,7 @@
+# Use this workspace to collaborate
+workspace:
+  id: edf66a7c-60fb-48e0-8520-4735c19d665f
+
+localResources:
+  collections:
+    - ../domicilios-app/postman/Domicilios Cali - Pruebas API

@@ -1,0 +1,26 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api/domiciliarios"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "numeroIdentificacion": "{{idDomiciliarioPrueba}}",
+      "nombre": "Ana",
+      "apellido_Paterno": "Ruiz",
+      "apellido_Materno": "Mejía",
+      "numeroTelefono": "3105554433",
+      "correoElectronico": "ana.ruiz@gmail.com",
+      "idMedioTransporte": 2,
+      "idEstadoDomiciliario": 1
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Responde 201', function () { pm.response.to.have.status(201); });
+      pm.test('Código generado', function () { pm.expect(pm.response.json().codigoUnico).to.be.a('number'); });
+    language: text/javascript
+order: 1000

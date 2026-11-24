@@ -1,0 +1,24 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api/clientes"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "numeroIdentificacion": "{{idClientePrueba}}",
+      "nombre": "Pedro",
+      "apellido_Paterno": "Gómez",
+      "apellido_Materno": "Rivas",
+      "numeroTelefono": "3001112233",
+      "correoElectronico": "pedro.gomez@gmail.com"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Responde 201', function () { pm.response.to.have.status(201); });
+      pm.test('Guardó el nombre', function () { pm.expect(pm.response.json().nombre).to.eql('Pedro'); });
+    language: text/javascript
+order: 1000

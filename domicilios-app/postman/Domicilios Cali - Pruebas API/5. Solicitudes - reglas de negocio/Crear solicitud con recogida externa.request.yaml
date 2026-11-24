@@ -1,0 +1,24 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api/solicitudes"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "idCliente": "{{idClientePrueba}}",
+      "idDireccion": "{{idDireccion}}",
+      "direccionRecogidaExterna": "Calle 9 # 5-20, Centro",
+      "descripcion": "Paquete - documentos",
+      "montoTotal": 12000,
+      "idMetodoPago": 1
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Responde 201', function () { pm.response.to.have.status(201); });
+      pm.collectionVariables.set('numeroSolicitudExterna', pm.response.json().numeroSolicitud);
+    language: text/javascript
+order: 2000

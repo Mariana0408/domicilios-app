@@ -1,0 +1,25 @@
+$kind: http-request
+name: "Error: monto negativo"
+description: ""
+url: "{{baseUrl}}/api/solicitudes"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "idCliente": "{{idClientePrueba}}",
+      "idDireccion": "{{idDireccion}}",
+      "idEstablecimiento": "{{idEstablecimiento}}",
+      "descripcion": "Pedido #5001 - 2 hamburguesas",
+      "montoTotal": -5,
+      "idMetodoPago": 2
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Responde 400', function () { pm.response.to.have.status(400); });
+      pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });
+    language: text/javascript
+order: 6000

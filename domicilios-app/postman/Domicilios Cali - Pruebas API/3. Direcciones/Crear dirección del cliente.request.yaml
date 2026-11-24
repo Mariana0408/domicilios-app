@@ -1,0 +1,22 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api/direcciones"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "idCliente": "{{idClientePrueba}}",
+      "ubicacion": "Calle 13 # 100-20, Apto 402",
+      "referencia": "Edificio azul",
+      "idBarrio": 13
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Responde 201', function () { pm.response.to.have.status(201); });
+      pm.collectionVariables.set('idDireccion', pm.response.json().idDireccion);
+    language: text/javascript
+order: 1000

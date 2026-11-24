@@ -1,0 +1,141 @@
+:root {
+    --azul: #145a7a;
+    --azul-claro: #e8f2f7;
+    --texto: #1f2933;
+    --tenue: #6b7785;
+    --borde: #d9e2ea;
+    --rojo: #b42318;
+    --verde: #1a7f4b;
+    --fondo: #f5f7fa;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--texto);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fondo); }
+
+.barra {
+    background: var(--azul);
+    color: #fff;
+    padding: 14px 28px 0;
+}
+.marca { display: flex; align-items: center; gap: 12px; }
+.logo { font-size: 30px; }
+.marca h1 { margin: 0; font-size: 20px; }
+.marca p { margin: 2px 0 0; font-size: 13px; opacity: .8; }
+
+nav { display: flex; gap: 4px; margin-top: 14px; flex-wrap: wrap; }
+nav button {
+    background: transparent;
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 8px 8px 0 0;
+    opacity: .85;
+}
+nav button:hover { opacity: 1; background: rgba(255,255,255,.1); }
+nav button.activa { background: var(--fondo); color: var(--azul); opacity: 1; font-weight: 600; }
+
+main { padding: 24px 28px; }
+
+.encabezado {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+.encabezado h2 { margin: 0; }
+.tenue { color: var(--tenue); margin: 4px 0 0; font-size: 13px; }
+.herramientas { display: flex; gap: 8px; }
+
+input, select, textarea {
+    font: inherit;
+    padding: 8px 10px;
+    border: 1px solid var(--borde);
+    border-radius: 6px;
+    background: #fff;
+    width: 100%;
+}
+textarea { min-height: 70px; resize: vertical; }
+#buscar { width: 240px; }
+
+button { font: inherit; cursor: pointer; }
+.primario, .secundario {
+    border-radius: 6px;
+    padding: 8px 16px;
+    border: 1px solid var(--azul);
+    white-space: nowrap;
+}
+.primario { background: var(--azul); color: #fff; }
+.primario:hover { filter: brightness(1.1); }
+.secundario { background: #fff; color: var(--azul); }
+.secundario:hover { background: var(--azul-claro); }
+
+.contenedor-tabla {
+    background: #fff;
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    overflow: auto;
+    max-height: calc(100vh - 230px);
+}
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--borde); vertical-align: top; }
+th { background: var(--azul-claro); position: sticky; top: 0; font-weight: 600; white-space: nowrap; }
+tbody tr:hover { background: #fafcfd; }
+td.vacio { color: var(--tenue); font-style: italic; }
+td.acciones { white-space: nowrap; }
+td.acciones button {
+    border: 1px solid var(--borde);
+    background: #fff;
+    border-radius: 5px;
+    padding: 3px 8px;
+    margin: 0 2px 2px 0;
+    font-size: 12px;
+}
+td.acciones button:hover { border-color: var(--azul); color: var(--azul); }
+td.acciones button.peligro:hover { border-color: var(--rojo); color: var(--rojo); }
+
+.estado { padding: 2px 8px; border-radius: 10px; font-size: 12px; background: #eef1f4; white-space: nowrap; }
+.estado-Creada { background: #fff4d6; }
+.estado-Asignada { background: #e0ecff; }
+.estado-En-curso { background: #e6dcff; }
+.estado-Finalizada { background: #dcf5e6; }
+.estado-Cancelada { background: #fde2e1; }
+.estado-Activo { background: #dcf5e6; }
+.estado-Inactivo { background: #fde2e1; }
+
+dialog {
+    border: none;
+    border-radius: 12px;
+    padding: 0;
+    width: min(520px, 94vw);
+    max-height: 92vh;
+    overflow: auto;
+    box-shadow: 0 20px 50px rgba(0,0,0,.25);
+}
+dialog::backdrop { background: rgba(15, 30, 45, .45); }
+#formulario { padding: 22px 24px; }
+#formulario h3 { margin: 0 0 16px; }
+.campo { display: block; margin-bottom: 12px; font-size: 13px; }
+.campo > span { display: block; margin-bottom: 4px; font-weight: 600; }
+.campo small { display: block; color: var(--tenue); margin-top: 3px; }
+.botones { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+.error { color: var(--rojo); background: #fde2e1; padding: 8px 10px; border-radius: 6px; font-size: 13px; }
+
+#aviso {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 12px 18px;
+    border-radius: 8px;
+    color: #fff;
+    background: var(--verde);
+    box-shadow: 0 8px 20px rgba(0,0,0,.2);
+    max-width: 420px;
+    font-size: 14px;
+}
+#aviso.es-error { background: var(--rojo); }

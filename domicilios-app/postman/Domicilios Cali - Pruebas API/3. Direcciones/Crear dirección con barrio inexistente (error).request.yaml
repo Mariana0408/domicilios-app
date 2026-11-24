@@ -1,0 +1,21 @@
+$kind: http-request
+description: La FK a Barrio lo impide.
+url: "{{baseUrl}}/api/direcciones"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "idCliente": "{{idClientePrueba}}",
+      "ubicacion": "Calle 1",
+      "idBarrio": 999
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Responde 409', function () { pm.response.to.have.status(409); });
+      pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });
+    language: text/javascript
+order: 2000
