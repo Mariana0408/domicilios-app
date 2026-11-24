@@ -26,11 +26,17 @@ import co.edu.uao.domicilios.soporte.Usuarios;
 @RequestMapping("/api/domiciliarios")
 public class DomiciliarioController {
 
+    // Id de 'Inactivo' en la tabla EstadoDomiciliario
+    private static final int INACTIVO = 2;
+
     private static final String CONSULTA = """
             SELECT d.idDomiciliario AS numeroIdentificacion, d.codigoUnico,
                    u.nombre, u.apellido_Paterno, u.apellido_Materno, u.numeroTelefono, u.correoElectronico,
                    d.idEstadoDomiciliario, ed.nombreEstadoDomiciliario,
-                   d.idMedioTransporte, mt.nombreMedioTransporte
+                   d.idMedioTransporte, mt.nombreMedioTransporte,
+                   (SELECT COUNT(*) FROM Solicitud s
+                     WHERE s.idDomiciliario = d.idDomiciliario
+                       AND s.idEstadoSolicitud IN (2, 3)) AS solicitudesActivas
             FROM Domiciliario d
             INNER JOIN Usuario u ON u.numeroIdentificacion = d.idDomiciliario
             INNER JOIN EstadoDomiciliario ed ON ed.idEstadoDomiciliario = d.idEstadoDomiciliario
@@ -78,10 +84,18 @@ public class DomiciliarioController {
     @PutMapping("/{id}")
     @Transactional
     public Map<String, Object> editar(@PathVariable("id") long id, @RequestBody Map<String, Object> datos) {
-        buscar(id);
+        Map<String, Object> actual = buscar(id);
         Long codigo = Campos.entero(datos, "codigoUnico");
         long idEstado = Campos.enteroRequerido(datos, "idEstadoDomiciliario");
         long idMedio = Campos.enteroRequerido(datos, "idMedioTransporte");
+
+        // Igual que el trigger trg_validar_inactivar_domiciliario (Entrega 4)
+        int estadoActual = ((Number) actual.get("idEstadoDomiciliario")).intValue();
+        int activas = ((Number) actual.get("solicitudesActivas")).intValue();
+        if (idEstado == INACTIVO && estadoActual != INACTIVO && activas > 0) {
+            throw new IllegalArgumentException(
+                    "El domiciliario tiene solicitudes activas y no se puede inactivar.");
+        }
 
         usuarios.guardar(id, datos);
         jdbc.update("""

@@ -1,0 +1,2445 @@
+{
+  "info": {
+    "name": "Domicilios Cali - Pruebas API",
+    "description": "Pruebas del backend Spring Boot del Proyecto Integrador (Bases de Datos 1, UAO). Requisitos: MySQL con los scripts 01, 02 y 03 ejecutados y la aplicación corriendo. Ejecute la colección completa en orden con el Collection Runner: crea datos de prueba, valida las reglas de negocio, los reportes y la auditoría, y al final elimina todo lo que creó.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Catálogos",
+      "item": [
+        {
+          "name": "Listar catálogos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Trae 22 barrios', function () { pm.expect(pm.response.json().barrios.length).to.be.at.least(22); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/catalogos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "catalogos"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Clientes",
+      "item": [
+        {
+          "name": "Crear cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Guardó el nombre', function () { pm.expect(pm.response.json().nombre).to.eql('Pedro'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clientes"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroIdentificacion\": \"{{idClientePrueba}}\",\n  \"nombre\": \"Pedro\",\n  \"apellido_Paterno\": \"Gómez\",\n  \"apellido_Materno\": \"Rivas\",\n  \"numeroTelefono\": \"3001112233\",\n  \"correoElectronico\": \"pedro.gomez@gmail.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: cliente duplicado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', function () { pm.response.to.have.status(409); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clientes"
+              ]
+            },
+            "description": "La llave primaria de Cliente no permite repetir el número de identificación.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroIdentificacion\": \"{{idClientePrueba}}\",\n  \"nombre\": \"Pedro\",\n  \"apellido_Paterno\": \"Gómez\",\n  \"apellido_Materno\": \"Rivas\",\n  \"numeroTelefono\": \"3001112233\",\n  \"correoElectronico\": \"pedro.gomez@gmail.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: cliente sin nombre",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clientes"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroIdentificacion\": \"1000000096\",\n  \"apellido_Paterno\": \"X\",\n  \"apellido_Materno\": \"Y\",\n  \"numeroTelefono\": \"300\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Actualizar teléfono del cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Teléfono actualizado', function () { pm.expect(pm.response.json().numeroTelefono).to.eql('3009998877'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes/{{idClientePrueba}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clientes",
+                "{{idClientePrueba}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroIdentificacion\": \"{{idClientePrueba}}\",\n  \"nombre\": \"Pedro\",\n  \"apellido_Paterno\": \"Gómez\",\n  \"apellido_Materno\": \"Rivas\",\n  \"numeroTelefono\": \"3009998877\",\n  \"correoElectronico\": \"pedro.gomez@gmail.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listar clientes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clientes"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Error: cliente inexistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', function () { pm.response.to.have.status(404); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clientes",
+                "1"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Direcciones",
+      "item": [
+        {
+          "name": "Crear dirección del cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set('idDireccion', pm.response.json().idDireccion);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/direcciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "direcciones"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCliente\": \"{{idClientePrueba}}\",\n  \"ubicacion\": \"Calle 13 # 100-20, Apto 402\",\n  \"referencia\": \"Edificio azul\",\n  \"idBarrio\": 13\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: dirección con barrio inexistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', function () { pm.response.to.have.status(409); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/direcciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "direcciones"
+              ]
+            },
+            "description": "La llave foránea a Barrio lo impide.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCliente\": \"{{idClientePrueba}}\",\n  \"ubicacion\": \"Calle 1\",\n  \"idBarrio\": 999\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Direcciones de un cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Tiene 1 dirección', function () { pm.expect(pm.response.json().length).to.eql(1); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/direcciones?cliente={{idClientePrueba}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "direcciones"
+              ],
+              "query": [
+                {
+                  "key": "cliente",
+                  "value": "{{idClientePrueba}}"
+                }
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Domiciliarios y establecimientos",
+      "item": [
+        {
+          "name": "Crear domiciliario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Código generado', function () { pm.expect(pm.response.json().codigoUnico).to.be.a('number'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/domiciliarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "domiciliarios"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroIdentificacion\": \"{{idDomiciliarioPrueba}}\",\n  \"nombre\": \"Ana\",\n  \"apellido_Paterno\": \"Ruiz\",\n  \"apellido_Materno\": \"Mejía\",\n  \"numeroTelefono\": \"3105554433\",\n  \"correoElectronico\": \"ana.ruiz@gmail.com\",\n  \"idMedioTransporte\": 2,\n  \"idEstadoDomiciliario\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Crear domiciliario inactivo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Queda Inactivo', function () { pm.expect(pm.response.json().nombreEstadoDomiciliario).to.eql('Inactivo'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/domiciliarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "domiciliarios"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroIdentificacion\": \"{{idDomiciliarioInactivo}}\",\n  \"nombre\": \"Pablo\",\n  \"apellido_Paterno\": \"Ortiz\",\n  \"apellido_Materno\": \"Lara\",\n  \"numeroTelefono\": \"3108887766\",\n  \"correoElectronico\": null,\n  \"idMedioTransporte\": 1,\n  \"idEstadoDomiciliario\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Crear establecimiento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set('idEstablecimiento', pm.response.json().idEstablecimiento);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/establecimientos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "establecimientos"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreComercial\": \"Hamburguesas La 5ta\",\n  \"ubicacion\": \"Calle 5 # 40-10\",\n  \"telefono\": \"6024445566\",\n  \"email\": \"la5ta@gmail.com\",\n  \"idTipoEstablecimiento\": 1,\n  \"idBarrio\": 18\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listar domiciliarios",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Incluye solicitudes activas', function () { pm.expect(pm.response.json()[0]).to.have.property('solicitudesActivas'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/domiciliarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "domiciliarios"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Solicitudes - reglas de negocio",
+      "item": [
+        {
+          "name": "Crear solicitud desde establecimiento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set('numeroSolicitud', pm.response.json().numeroSolicitud);",
+                  "pm.test('Queda en estado Creada', function () { pm.expect(pm.response.json().nombreEstadoSolicitud).to.eql('Creada'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCliente\": \"{{idClientePrueba}}\",\n  \"idDireccion\": \"{{idDireccion}}\",\n  \"idEstablecimiento\": \"{{idEstablecimiento}}\",\n  \"descripcion\": \"Pedido #5001 - 2 hamburguesas\",\n  \"montoTotal\": 45000,\n  \"idMetodoPago\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Crear solicitud con recogida externa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set('numeroSolicitudExterna', pm.response.json().numeroSolicitud);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCliente\": \"{{idClientePrueba}}\",\n  \"idDireccion\": \"{{idDireccion}}\",\n  \"direccionRecogidaExterna\": \"Calle 9 # 5-20, Centro\",\n  \"descripcion\": \"Paquete - documentos\",\n  \"montoTotal\": 12000,\n  \"idMetodoPago\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Crear tercera solicitud",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set('numeroSolicitud3', pm.response.json().numeroSolicitud);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCliente\": \"{{idClientePrueba}}\",\n  \"idDireccion\": \"{{idDireccion}}\",\n  \"idEstablecimiento\": \"{{idEstablecimiento}}\",\n  \"descripcion\": \"Pedido #5002 - combo familiar\",\n  \"montoTotal\": 38000,\n  \"idMetodoPago\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: establecimiento y dirección externa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes"
+              ]
+            },
+            "description": "Regla: un único lugar de recogida.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCliente\": \"{{idClientePrueba}}\",\n  \"idDireccion\": \"{{idDireccion}}\",\n  \"idEstablecimiento\": \"{{idEstablecimiento}}\",\n  \"descripcion\": \"Pedido #5001 - 2 hamburguesas\",\n  \"montoTotal\": 45000,\n  \"idMetodoPago\": 2,\n  \"direccionRecogidaExterna\": \"Calle 1 # 2-3\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: sin lugar de recogida",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCliente\": \"{{idClientePrueba}}\",\n  \"idDireccion\": \"{{idDireccion}}\",\n  \"descripcion\": \"Pedido #5001 - 2 hamburguesas\",\n  \"montoTotal\": 45000,\n  \"idMetodoPago\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: dirección de otro cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes"
+              ]
+            },
+            "description": "La dirección 1 es de Laura Correa, no del cliente de prueba.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCliente\": \"{{idClientePrueba}}\",\n  \"idDireccion\": 1,\n  \"idEstablecimiento\": \"{{idEstablecimiento}}\",\n  \"descripcion\": \"Pedido #5001 - 2 hamburguesas\",\n  \"montoTotal\": 45000,\n  \"idMetodoPago\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: monto negativo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCliente\": \"{{idClientePrueba}}\",\n  \"idDireccion\": \"{{idDireccion}}\",\n  \"idEstablecimiento\": \"{{idEstablecimiento}}\",\n  \"descripcion\": \"Pedido #5001 - 2 hamburguesas\",\n  \"montoTotal\": -5,\n  \"idMetodoPago\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: monto en cero",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes"
+              ]
+            },
+            "description": "Regla del trigger trg_validar_solicitud_insert: el monto debe ser mayor que 0.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCliente\": \"{{idClientePrueba}}\",\n  \"idDireccion\": \"{{idDireccion}}\",\n  \"idEstablecimiento\": \"{{idEstablecimiento}}\",\n  \"descripcion\": \"Pedido #5001 - 2 hamburguesas\",\n  \"montoTotal\": 0,\n  \"idMetodoPago\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: pasar a En curso sin domiciliario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes/{{numeroSolicitudExterna}}/estado",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes",
+                "{{numeroSolicitudExterna}}",
+                "estado"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idEstadoSolicitud\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: asignar domiciliario inactivo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes/{{numeroSolicitud}}/asignar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes",
+                "{{numeroSolicitud}}",
+                "asignar"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idDomiciliario\": \"{{idDomiciliarioInactivo}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Asignar domiciliario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Estado Asignada con fecha de asignación', function () { const j = pm.response.json(); pm.expect(j.nombreEstadoSolicitud).to.eql('Asignada'); pm.expect(j.fechaAsignacion).to.not.be.null; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes/{{numeroSolicitud}}/asignar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes",
+                "{{numeroSolicitud}}",
+                "asignar"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idDomiciliario\": \"{{idDomiciliarioPrueba}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Asignar el mismo domiciliario a la solicitud externa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes/{{numeroSolicitudExterna}}/asignar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes",
+                "{{numeroSolicitudExterna}}",
+                "asignar"
+              ]
+            },
+            "description": "Ahora el domiciliario tiene 2 solicitudes activas.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idDomiciliario\": \"{{idDomiciliarioPrueba}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: domiciliario con 2 solicitudes activas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes/{{numeroSolicitud3}}/asignar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes",
+                "{{numeroSolicitud3}}",
+                "asignar"
+              ]
+            },
+            "description": "Regla del trigger trg_validar_domiciliario: máximo 2 solicitudes activas.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idDomiciliario\": \"{{idDomiciliarioPrueba}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: inactivar domiciliario con solicitudes activas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/domiciliarios/{{idDomiciliarioPrueba}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "domiciliarios",
+                "{{idDomiciliarioPrueba}}"
+              ]
+            },
+            "description": "Regla del trigger trg_validar_inactivar_domiciliario.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroIdentificacion\": \"{{idDomiciliarioPrueba}}\",\n  \"nombre\": \"Ana\",\n  \"apellido_Paterno\": \"Ruiz\",\n  \"apellido_Materno\": \"Mejía\",\n  \"numeroTelefono\": \"3105554433\",\n  \"correoElectronico\": \"ana.ruiz@gmail.com\",\n  \"idMedioTransporte\": 2,\n  \"idEstadoDomiciliario\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: finalizar sin pasar por En curso",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes/{{numeroSolicitud}}/estado",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes",
+                "{{numeroSolicitud}}",
+                "estado"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idEstadoSolicitud\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Pasar a En curso",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes/{{numeroSolicitud}}/estado",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes",
+                "{{numeroSolicitud}}",
+                "estado"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idEstadoSolicitud\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Incidentes",
+      "item": [
+        {
+          "name": "Error: incidente en solicitud sin domiciliario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/incidentes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "incidentes"
+              ]
+            },
+            "description": "Regla del trigger trg_validar_incidente.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroSolicitud\": \"{{numeroSolicitud3}}\",\n  \"idTipoIncidente\": 1,\n  \"descripcion\": \"Demora en el establecimiento\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Registrar incidente (fecha y hora actuales)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set('codigoIncidente', pm.response.json().codigoIncidente);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/incidentes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "incidentes"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroSolicitud\": \"{{numeroSolicitud}}\",\n  \"idTipoIncidente\": 1,\n  \"descripcion\": \"Trancón en la Calle 5\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: incidente anterior a la solicitud",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/incidentes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "incidentes"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroSolicitud\": \"{{numeroSolicitud}}\",\n  \"idTipoIncidente\": 1,\n  \"descripcion\": \"Fecha imposible\",\n  \"fechaIncidente\": \"2020-01-01\",\n  \"horaIncidente\": \"08:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Incidentes de la solicitud",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Tiene 1 incidente', function () { pm.expect(pm.response.json().length).to.eql(1); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/incidentes?solicitud={{numeroSolicitud}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "incidentes"
+              ],
+              "query": [
+                {
+                  "key": "solicitud",
+                  "value": "{{numeroSolicitud}}"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Finalizar solicitud",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes/{{numeroSolicitud}}/estado",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes",
+                "{{numeroSolicitud}}",
+                "estado"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idEstadoSolicitud\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: cambiar estado de una finalizada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes/{{numeroSolicitud}}/estado",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes",
+                "{{numeroSolicitud}}",
+                "estado"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idEstadoSolicitud\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cancelar la solicitud externa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes/{{numeroSolicitudExterna}}/estado",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes",
+                "{{numeroSolicitudExterna}}",
+                "estado"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idEstadoSolicitud\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Integridad referencial",
+      "item": [
+        {
+          "name": "Error: eliminar cliente con direcciones y solicitudes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', function () { pm.response.to.have.status(409); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes/{{idClientePrueba}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clientes",
+                "{{idClientePrueba}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Error: eliminar establecimiento con solicitudes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', function () { pm.response.to.have.status(409); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/establecimientos/{{idEstablecimiento}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "establecimientos",
+                "{{idEstablecimiento}}"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Reportes y auditoría (requiere scripts 02 y 03)",
+      "item": [
+        {
+          "name": "Historial de la solicitud (auditoría)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Tiene 4 movimientos', function () { pm.expect(pm.response.json().length).to.eql(4); });",
+                  "pm.test('Empieza en CREACION y termina en Finalizada', function () { const h = pm.response.json(); pm.expect(h[0].accion).to.eql('CREACION'); pm.expect(h[3].estadoNuevo).to.eql('Finalizada'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes/{{numeroSolicitud}}/historial",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes",
+                "{{numeroSolicitud}}",
+                "historial"
+              ]
+            },
+            "description": "Triggers trg_auditar_creacion_solicitud y trg_auditar_cambio_solicitud + procedimiento sp_historial_solicitud."
+          }
+        },
+        {
+          "name": "Historial de la solicitud externa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Creada, Asignada y Cancelada', function () { const h = pm.response.json(); pm.expect(h.length).to.eql(3); pm.expect(h[2].estadoNuevo).to.eql('Cancelada'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes/{{numeroSolicitudExterna}}/historial",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes",
+                "{{numeroSolicitudExterna}}",
+                "historial"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Solicitudes por fecha",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Trae solicitudes', function () { pm.expect(pm.response.json().length).to.be.at.least(10); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reportes/solicitudes-por-fecha?fecha=2026-10-04",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "solicitudes-por-fecha"
+              ],
+              "query": [
+                {
+                  "key": "fecha",
+                  "value": "2026-10-04"
+                }
+              ]
+            },
+            "description": "Procedimiento sp_solicitudes_por_fecha."
+          }
+        },
+        {
+          "name": "Error: fecha con formato inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reportes/solicitudes-por-fecha?fecha=04-10-2026",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "solicitudes-por-fecha"
+              ],
+              "query": [
+                {
+                  "key": "fecha",
+                  "value": "04-10-2026"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Resumen del domiciliario de prueba",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Datos del resumen', function () { const r = pm.response.json()[0]; pm.expect(r.total_solicitudes).to.eql(2); pm.expect(r.finalizadas).to.eql(1); pm.expect(r.canceladas).to.eql(1); pm.expect(Number(r.total_movilizado)).to.eql(45000); pm.expect(r.incidentes).to.eql(1); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reportes/resumen-domiciliario/{{idDomiciliarioPrueba}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "resumen-domiciliario",
+                "{{idDomiciliarioPrueba}}"
+              ]
+            },
+            "description": "Procedimiento sp_resumen_domiciliario (usa las funciones de la Entrega 3)."
+          }
+        },
+        {
+          "name": "Error: resumen de domiciliario inexistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });",
+                  "pm.test('Mensaje del procedimiento', function () { pm.expect(pm.response.json().error).to.include('no existe'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reportes/resumen-domiciliario/999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "resumen-domiciliario",
+                "999"
+              ]
+            },
+            "description": "El procedimiento lanza SIGNAL '45000' y el backend lo devuelve como 400."
+          }
+        },
+        {
+          "name": "Desempeño de domiciliarios (cursor)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Clasifica a todos los domiciliarios', function () { const r = pm.response.json(); pm.expect(r.length).to.be.at.least(10); pm.expect(r[0]).to.have.property('clasificacion'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reportes/desempeno-domiciliarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "desempeno-domiciliarios"
+              ]
+            },
+            "description": "Procedimiento con cursor sp_reporte_desempeno_domiciliarios."
+          }
+        },
+        {
+          "name": "Domiciliarios disponibles",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Incluye al domiciliario de prueba y no al inactivo', function () { const ids = pm.response.json().map(d => String(d.idDomiciliario)); pm.expect(ids).to.include(pm.collectionVariables.get('idDomiciliarioPrueba')); pm.expect(ids).to.not.include(pm.collectionVariables.get('idDomiciliarioInactivo')); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reportes/domiciliarios-disponibles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "domiciliarios-disponibles"
+              ]
+            },
+            "description": "Vista vw_domiciliarios_disponibles."
+          }
+        },
+        {
+          "name": "Resumen por cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Totales del cliente de prueba', function () { const c = pm.response.json().find(x => String(x.idCliente) === pm.collectionVariables.get('idClientePrueba')); pm.expect(c.total_solicitudes).to.eql(3); pm.expect(c.finalizadas).to.eql(1); pm.expect(Number(c.total_pagado)).to.eql(45000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reportes/clientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "clientes"
+              ]
+            },
+            "description": "Vista vw_resumen_clientes."
+          }
+        },
+        {
+          "name": "Reporte por establecimiento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Totales del establecimiento de prueba', function () { const e = pm.response.json().find(x => x.nombreComercial === 'Hamburguesas La 5ta'); pm.expect(e.solicitudes).to.eql(2); pm.expect(Number(e.monto_finalizado)).to.eql(45000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reportes/establecimientos?inicio=2026-01-01&fin=2030-12-31",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "establecimientos"
+              ],
+              "query": [
+                {
+                  "key": "inicio",
+                  "value": "2026-01-01"
+                },
+                {
+                  "key": "fin",
+                  "value": "2030-12-31"
+                }
+              ]
+            },
+            "description": "Procedimiento sp_reporte_establecimientos."
+          }
+        },
+        {
+          "name": "Error: rango de fechas invertido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reportes/establecimientos?inicio=2026-12-31&fin=2026-01-01",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "establecimientos"
+              ],
+              "query": [
+                {
+                  "key": "inicio",
+                  "value": "2026-12-31"
+                },
+                {
+                  "key": "fin",
+                  "value": "2026-01-01"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Detalle de solicitudes (vista)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Trae la solicitud de prueba', function () { const s = pm.response.json().find(x => String(x.numeroSolicitud) === String(pm.collectionVariables.get('numeroSolicitud'))); pm.expect(s.estado).to.eql('Finalizada'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reportes/solicitudes-detalle",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "solicitudes-detalle"
+              ]
+            },
+            "description": "Vista vw_solicitudes_detalle."
+          }
+        },
+        {
+          "name": "Auditoría general",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Tiene registros', function () { pm.expect(pm.response.json().length).to.be.at.least(1); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reportes/auditoria",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "auditoria"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Limpieza (deja la base como estaba)",
+      "item": [
+        {
+          "name": "Eliminar solicitud (con incidentes e historial)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes/{{numeroSolicitud}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes",
+                "{{numeroSolicitud}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Verificar que ya no existe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', function () { pm.response.to.have.status(404); });",
+                  "pm.test('Trae mensaje de error', function () { pm.expect(pm.response.json().error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes/{{numeroSolicitud}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes",
+                "{{numeroSolicitud}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Eliminar solicitud externa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes/{{numeroSolicitudExterna}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes",
+                "{{numeroSolicitudExterna}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Eliminar tercera solicitud",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/solicitudes/{{numeroSolicitud3}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "solicitudes",
+                "{{numeroSolicitud3}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Eliminar dirección",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/direcciones/{{idDireccion}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "direcciones",
+                "{{idDireccion}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Eliminar cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes/{{idClientePrueba}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clientes",
+                "{{idClientePrueba}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Eliminar domiciliario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/domiciliarios/{{idDomiciliarioPrueba}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "domiciliarios",
+                "{{idDomiciliarioPrueba}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Eliminar domiciliario inactivo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/domiciliarios/{{idDomiciliarioInactivo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "domiciliarios",
+                "{{idDomiciliarioInactivo}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Eliminar establecimiento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/establecimientos/{{idEstablecimiento}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "establecimientos",
+                "{{idEstablecimiento}}"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "idClientePrueba",
+      "value": "1000000099"
+    },
+    {
+      "key": "idDomiciliarioPrueba",
+      "value": "1000000098"
+    },
+    {
+      "key": "idDomiciliarioInactivo",
+      "value": "1000000097"
+    },
+    {
+      "key": "idDireccion",
+      "value": ""
+    },
+    {
+      "key": "idEstablecimiento",
+      "value": ""
+    },
+    {
+      "key": "numeroSolicitud",
+      "value": ""
+    },
+    {
+      "key": "numeroSolicitudExterna",
+      "value": ""
+    },
+    {
+      "key": "numeroSolicitud3",
+      "value": ""
+    },
+    {
+      "key": "codigoIncidente",
+      "value": ""
+    }
+  ]
+}

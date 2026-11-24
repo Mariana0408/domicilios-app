@@ -22,6 +22,7 @@
         <button data-entidad="domiciliarios">Domiciliarios</button>
         <button data-entidad="establecimientos">Establecimientos</button>
         <button data-entidad="incidentes">Incidentes</button>
+        <button data-entidad="reportes">Reportes</button>
     </nav>
 </header>
 
@@ -36,6 +37,15 @@
             <button id="recargar" class="secundario" title="Volver a consultar la base de datos">↻ Recargar</button>
             <button id="nuevo" class="primario">+ Nuevo</button>
         </div>
+    </div>
+
+    <div id="panelReportes" class="panel-reportes" hidden>
+        <label class="parametro">
+            <span>Reporte</span>
+            <select id="tipoReporte"></select>
+        </label>
+        <div id="parametrosReporte" class="parametros"></div>
+        <button id="consultarReporte" class="primario">Consultar</button>
     </div>
 
     <div class="contenedor-tabla">
@@ -54,7 +64,7 @@
         <p id="errorDialogo" class="error" hidden></p>
         <div class="botones">
             <button type="button" id="cancelar" class="secundario">Cancelar</button>
-            <button type="submit" class="primario">Guardar</button>
+            <button type="submit" id="guardar" class="primario">Guardar</button>
         </div>
     </form>
 </dialog>

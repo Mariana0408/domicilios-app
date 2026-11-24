@@ -108,6 +108,14 @@ public class IncidenteController {
         if (existe == null || existe == 0) {
             throw new IllegalArgumentException("No existe la solicitud " + numeroSolicitud + ".");
         }
+        // Igual que el trigger trg_validar_incidente (Entrega 4): la solicitud debe tener domiciliario
+        Integer conDomiciliario = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM Solicitud WHERE numeroSolicitud = ? AND idDomiciliario IS NOT NULL",
+                Integer.class, numeroSolicitud);
+        if (conDomiciliario == null || conDomiciliario == 0) {
+            throw new IllegalArgumentException(
+                    "No se registran incidentes en solicitudes sin domiciliario asignado.");
+        }
         // Un incidente no puede ocurrir antes de que se creara la solicitud
         Integer valido = jdbc.queryForObject("""
                 SELECT COUNT(*) FROM Solicitud

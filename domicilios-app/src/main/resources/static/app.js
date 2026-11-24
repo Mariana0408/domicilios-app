@@ -73,18 +73,26 @@ const opcionesEstablecimientos = async () =>
         id: e.idEstablecimiento, nombre: `${e.nombreComercial} (${e.nombreTipoEstablecimiento})`
     }));
 
-const opcionesDomiciliariosActivos = async () =>
+// Disponibles: activos y con menos de 2 solicitudes activas (regla de trg_validar_domiciliario)
+const opcionesDomiciliariosDisponibles = async () =>
     (await api('GET', '/api/domiciliarios'))
-        .filter(d => d.nombreEstadoDomiciliario === 'Activo')
+        .filter(d => d.nombreEstadoDomiciliario === 'Activo' && Number(d.solicitudesActivas) < 2)
         .map(d => ({
             id: d.numeroIdentificacion,
-            nombre: `${d.codigoUnico} · ${d.nombre} ${d.apellido_Paterno} (${d.nombreMedioTransporte})`
+            nombre: `${d.codigoUnico} · ${d.nombre} ${d.apellido_Paterno} (${d.nombreMedioTransporte}) · ${d.solicitudesActivas} activa(s)`
         }));
 
-const opcionesSolicitudes = async () =>
-    (await api('GET', '/api/solicitudes')).map(s => ({
-        id: s.numeroSolicitud, nombre: `${s.numeroSolicitud} · ${s.descripcion}`
+const opcionesTodosDomiciliarios = async () =>
+    (await api('GET', '/api/domiciliarios')).map(d => ({
+        id: d.numeroIdentificacion,
+        nombre: `${d.codigoUnico} · ${d.nombre} ${d.apellido_Paterno}`
     }));
+
+// Solo solicitudes con domiciliario: sin domiciliario no se registran incidentes (trg_validar_incidente)
+const opcionesSolicitudes = async () =>
+    (await api('GET', '/api/solicitudes'))
+        .filter(s => s.idDomiciliario !== null && s.idDomiciliario !== undefined)
+        .map(s => ({ id: s.numeroSolicitud, nombre: `${s.numeroSolicitud} · ${s.descripcion}` }));
 
 // Campos comunes de Usuario (cliente y domiciliario)
 const camposUsuario = [
@@ -126,13 +134,15 @@ const ENTIDADES = {
             { name: 'direccionRecogidaExterna', label: 'o recoger en dirección externa',
               ayuda: 'Llene solo uno de los dos: establecimiento o dirección externa.' },
             { name: 'descripcion', label: 'Descripción', tipo: 'textarea', requerido: true },
-            { name: 'montoTotal', label: 'Monto total (COP)', tipo: 'number', requerido: true, step: '0.01', min: 0 },
+            { name: 'montoTotal', label: 'Monto total (COP)', tipo: 'number', requerido: true, step: '0.01', min: 0,
+              ayuda: 'Debe ser mayor que 0.' },
             { name: 'idMetodoPago', label: 'Método de pago', tipo: 'select', requerido: true, opciones: desdeCatalogo('metodosPago') }
         ],
         acciones: [
             { texto: 'Asignar', fn: asignarDomiciliario },
             { texto: 'Estado', fn: cambiarEstado },
-            { texto: 'Incidentes', fn: verIncidentes }
+            { texto: 'Incidentes', fn: verIncidentes },
+            { texto: 'Historial', fn: verHistorial }
         ]
     },
 
@@ -177,7 +187,8 @@ const ENTIDADES = {
             ['numeroTelefono', 'Teléfono'],
             ['correoElectronico', 'Correo'],
             ['nombreMedioTransporte', 'Transporte'],
-            ['nombreEstadoDomiciliario', 'Estado', 'estado']
+            ['nombreEstadoDomiciliario', 'Estado', 'estado'],
+            ['solicitudesActivas', 'Activas']
         ],
         campos: [
             ...camposUsuario,
@@ -210,6 +221,10 @@ const ENTIDADES = {
         ]
     },
 
+    reportes: {
+        titulo: 'Reportes', soloLectura: true, columnas: []
+    },
+
     incidentes: {
         titulo: 'Incidentes', singular: 'incidente', url: '/api/incidentes', id: 'codigoIncidente',
         columnas: [
@@ -221,7 +236,8 @@ const ENTIDADES = {
             ['horaIncidente', 'Hora']
         ],
         campos: [
-            { name: 'numeroSolicitud', label: 'Solicitud', tipo: 'select', requerido: true, opciones: opcionesSolicitudes },
+            { name: 'numeroSolicitud', label: 'Solicitud', tipo: 'select', requerido: true, opciones: opcionesSolicitudes,
+              ayuda: 'Solo aparecen solicitudes que ya tienen domiciliario asignado.' },
             { name: 'idTipoIncidente', label: 'Tipo de incidente', tipo: 'select', requerido: true, opciones: desdeCatalogo('tiposIncidente') },
             { name: 'descripcion', label: 'Descripción', tipo: 'textarea', requerido: true },
             { name: 'fechaIncidente', label: 'Fecha', tipo: 'date', ayuda: 'Vacío = fecha de hoy.' },
@@ -229,6 +245,121 @@ const ENTIDADES = {
         ]
     }
 };
+
+// ---------------------------------------------------------------------------
+// Reportes: usan los procedimientos, el cursor y las vistas de MySQL (Entregas 3 y 4)
+// ---------------------------------------------------------------------------
+const REPORTES = [
+    { id: 'detalle', nombre: 'Detalle de solicitudes · vista vw_solicitudes_detalle',
+      url: () => '/api/reportes/solicitudes-detalle' },
+    { id: 'fecha', nombre: 'Solicitudes de una fecha · sp_solicitudes_por_fecha',
+      params: [{ name: 'fecha', label: 'Fecha', tipo: 'date', valor: '2026-10-04' }],
+      url: p => `/api/reportes/solicitudes-por-fecha?fecha=${encodeURIComponent(p.fecha)}` },
+    { id: 'resumen', nombre: 'Resumen de un domiciliario · sp_resumen_domiciliario',
+      params: [{ name: 'domiciliario', label: 'Domiciliario', tipo: 'select', opciones: opcionesTodosDomiciliarios }],
+      url: p => `/api/reportes/resumen-domiciliario/${encodeURIComponent(p.domiciliario)}` },
+    { id: 'desempeno', nombre: 'Desempeño de domiciliarios · cursor sp_reporte_desempeno_domiciliarios',
+      url: () => '/api/reportes/desempeno-domiciliarios' },
+    { id: 'disponibles', nombre: 'Domiciliarios disponibles · vista vw_domiciliarios_disponibles',
+      url: () => '/api/reportes/domiciliarios-disponibles' },
+    { id: 'clientes', nombre: 'Resumen por cliente · vista vw_resumen_clientes',
+      url: () => '/api/reportes/clientes' },
+    { id: 'establecimientos', nombre: 'Reporte por establecimiento · sp_reporte_establecimientos',
+      params: [{ name: 'inicio', label: 'Desde', tipo: 'date', valor: '2026-09-01' },
+               { name: 'fin', label: 'Hasta', tipo: 'date', valor: '2026-12-31' }],
+      url: p => `/api/reportes/establecimientos?inicio=${encodeURIComponent(p.inicio)}&fin=${encodeURIComponent(p.fin)}` },
+    { id: 'auditoria', nombre: 'Auditoría de solicitudes · tabla AuditoriaSolicitud',
+      url: () => '/api/reportes/auditoria' }
+];
+
+/** Convierte nombres de columnas como "total_movilizado" o "fechaCambio" en "Total movilizado", "Fecha cambio". */
+function tituloColumna(clave) {
+    const texto = clave.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
+    return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+function columnasDesde(filasReporte) {
+    if (!filasReporte.length) return [];
+    return Object.keys(filasReporte[0]).map(k => {
+        const esDinero = /monto|movilizado|pagado/i.test(k);
+        return [k, tituloColumna(k), esDinero ? (v => pesos.format(v)) : undefined];
+    });
+}
+
+async function prepararReportes() {
+    const select = $('#tipoReporte');
+    if (!select.options.length) {
+        for (const r of REPORTES) select.append(new Option(r.nombre, r.id));
+        select.addEventListener('change', pintarParametros);
+    }
+    await pintarParametros();
+}
+
+async function pintarParametros() {
+    const reporte = REPORTES.find(r => r.id === $('#tipoReporte').value);
+    const caja = $('#parametrosReporte');
+    caja.replaceChildren();
+    for (const p of reporte.params || []) {
+        const label = document.createElement('label');
+        label.className = 'parametro';
+        label.append(Object.assign(document.createElement('span'), { textContent: p.label }));
+        let input;
+        if (p.tipo === 'select') {
+            input = document.createElement('select');
+            try {
+                for (const o of await p.opciones()) input.append(new Option(o.nombre, o.id));
+            } catch (e) { aviso(e.message, true); }
+        } else {
+            input = Object.assign(document.createElement('input'), { type: p.tipo, value: p.valor || '' });
+        }
+        input.name = p.name;
+        label.append(input);
+        caja.append(label);
+    }
+}
+
+async function consultarReporte() {
+    const reporte = REPORTES.find(r => r.id === $('#tipoReporte').value);
+    const valores = {};
+    for (const p of reporte.params || []) valores[p.name] = $('#parametrosReporte').querySelector(`[name="${p.name}"]`).value;
+    try {
+        filas = await api('GET', reporte.url(valores));
+    } catch (e) {
+        filas = [];
+        aviso(e.message, true);
+    }
+    ENTIDADES.reportes.columnas = columnasDesde(filas);
+    pintarTabla();
+}
+
+/** Muestra una tabla de solo lectura dentro de la ventana emergente (por ejemplo, el historial). */
+function mostrarTablaEnDialogo(titulo, filasTabla) {
+    $('#tituloDialogo').textContent = titulo;
+    $('#errorDialogo').hidden = true;
+    $('#guardar').hidden = true;
+    $('#cancelar').textContent = 'Cerrar';
+    const contenedor = $('#campos');
+    contenedor.replaceChildren();
+    if (!filasTabla.length) {
+        contenedor.append(Object.assign(document.createElement('p'), { textContent: 'No hay registros.', className: 'tenue' }));
+    } else {
+        const tabla = document.createElement('table');
+        tabla.className = 'tabla-dialogo';
+        const columnas = Object.keys(filasTabla[0]);
+        const trEnc = document.createElement('tr');
+        for (const c of columnas) trEnc.append(Object.assign(document.createElement('th'), { textContent: tituloColumna(c) }));
+        tabla.append(trEnc);
+        for (const f of filasTabla) {
+            const tr = document.createElement('tr');
+            for (const c of columnas) tr.append(Object.assign(document.createElement('td'), { textContent: f[c] ?? '—' }));
+            tabla.append(tr);
+        }
+        contenedor.append(tabla);
+    }
+    $('#formulario').onchange = null;
+    $('#formulario').onsubmit = (ev) => { ev.preventDefault(); $('#dialogo').close(); };
+    $('#dialogo').showModal();
+}
 
 // ---------------------------------------------------------------------------
 // Tabla
@@ -242,6 +373,13 @@ async function mostrar(clave) {
     document.querySelectorAll('#pestanas button').forEach(b =>
         b.classList.toggle('activa', b.dataset.entidad === clave));
     $('#titulo').textContent = ent.titulo;
+    $('#panelReportes').hidden = !ent.soloLectura;
+    $('#nuevo').hidden = !!ent.soloLectura;
+    if (ent.soloLectura) {
+        await prepararReportes();
+        await consultarReporte();
+        return;
+    }
     try {
         filas = await api('GET', ent.url);
     } catch (e) {
@@ -267,7 +405,7 @@ function pintarTabla() {
         th.textContent = titulo;
         trEnc.append(th);
     }
-    trEnc.append(Object.assign(document.createElement('th'), { textContent: 'Acciones' }));
+    if (!ent.soloLectura) trEnc.append(Object.assign(document.createElement('th'), { textContent: 'Acciones' }));
     thead.append(trEnc);
 
     // Filas
@@ -293,6 +431,10 @@ function pintarTabla() {
             }
             tr.append(td);
         }
+        if (ent.soloLectura) {
+            tbody.append(tr);
+            continue;
+        }
         const tdAcc = document.createElement('td');
         tdAcc.className = 'acciones';
         for (const accion of ent.acciones || []) {
@@ -307,7 +449,7 @@ function pintarTabla() {
     }
     $('#conteo').textContent = filtro
         ? `${visibles.length} de ${filas.length} registros`
-        : `${filas.length} registros en la base de datos`;
+        : `${filas.length} registros ${ent.soloLectura ? 'en el reporte' : 'en la base de datos'}`;
 }
 
 function boton(texto, alHacerClic) {
@@ -345,6 +487,8 @@ async function abrirFormulario({ titulo, campos, valores = {}, editando = false,
     contenedor.replaceChildren();
     $('#tituloDialogo').textContent = titulo;
     $('#errorDialogo').hidden = true;
+    $('#guardar').hidden = false;
+    $('#cancelar').textContent = 'Cancelar';
 
     for (const c of campos) {
         const label = document.createElement('label');
@@ -442,9 +586,9 @@ function asignarDomiciliario(fila) {
     abrirFormulario({
         titulo: `Asignar domiciliario · solicitud ${fila.numeroSolicitud}`,
         campos: [{
-            name: 'idDomiciliario', label: 'Domiciliario (solo activos)', tipo: 'select', requerido: true,
-            opciones: opcionesDomiciliariosActivos,
-            ayuda: 'Se guardará la fecha y hora de asignación y el estado pasará a Asignada.'
+            name: 'idDomiciliario', label: 'Domiciliario disponible', tipo: 'select', requerido: true,
+            opciones: opcionesDomiciliariosDisponibles,
+            ayuda: 'Solo aparecen domiciliarios activos con menos de 2 solicitudes activas. Se guardará la fecha y hora de asignación y el estado pasará a Asignada.'
         }],
         valores: fila,
         enviar: (datos) => api('PUT', `/api/solicitudes/${fila.numeroSolicitud}/asignar`, datos)
@@ -464,6 +608,15 @@ function cambiarEstado(fila) {
     });
 }
 
+async function verHistorial(fila) {
+    try {
+        const historial = await api('GET', `/api/solicitudes/${fila.numeroSolicitud}/historial`);
+        mostrarTablaEnDialogo(`Historial · solicitud ${fila.numeroSolicitud}`, historial);
+    } catch (e) {
+        aviso(e.message, true);
+    }
+}
+
 function verIncidentes(fila) {
     $('#buscar').value = String(fila.numeroSolicitud);
     mostrar('incidentes');
@@ -480,6 +633,7 @@ document.querySelectorAll('#pestanas button').forEach(b =>
 $('#buscar').addEventListener('input', pintarTabla);
 $('#recargar').addEventListener('click', () => mostrar(entidadActual));
 $('#nuevo').addEventListener('click', nuevo);
+$('#consultarReporte').addEventListener('click', consultarReporte);
 $('#cancelar').addEventListener('click', () => $('#dialogo').close());
 
 mostrar('solicitudes');

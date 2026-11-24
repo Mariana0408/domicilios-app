@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import co.edu.uao.domicilios.soporte.Campos;
+import co.edu.uao.domicilios.soporte.Filas;
 import co.edu.uao.domicilios.soporte.Ids;
 import co.edu.uao.domicilios.soporte.NoEncontradoException;
 
@@ -29,8 +30,13 @@ import co.edu.uao.domicilios.soporte.NoEncontradoException;
  * Solicitudes de domicilio. Aquí están las reglas de negocio del enunciado:
  *  1. Un único lugar de recogida: establecimiento aliado O dirección externa, nunca ambos ni ninguno.
  *  2. La dirección de entrega debe ser una de las registradas por el cliente que hace la solicitud.
- *  3. Al asignar un domiciliario se guardan la fecha y hora de asignación; solo se asignan domiciliarios activos.
+ *  3. Al asignar un domiciliario se guardan la fecha y hora de asignación. Solo se asignan domiciliarios
+ *     activos, que no sean el mismo cliente y que tengan menos de 2 solicitudes activas.
  *  4. El estado avanza Creada → Asignada → En curso → Finalizada (o Cancelada en cualquier momento antes de terminar).
+ *
+ * Estas reglas también están en MySQL como triggers (Entregas 3 y 4): trg_validar_solicitud_insert,
+ * trg_validar_domiciliario y trg_flujo_estado_solicitud. El backend las valida primero para dar un
+ * mensaje claro; si algo llegara a MySQL sin cumplirlas, el trigger lo rechaza (doble protección).
  */
 @RestController
 @RequestMapping("/api/solicitudes")
@@ -44,6 +50,8 @@ public class SolicitudController {
     private static final int CANCELADA = 5;
     // Id de 'Activo' en la tabla EstadoDomiciliario
     private static final int DOMICILIARIO_ACTIVO = 1;
+    // Máximo de solicitudes activas (Asignada o En curso) por domiciliario, igual que trg_validar_domiciliario
+    private static final int MAX_SOLICITUDES_ACTIVAS = 2;
 
     private static final ZoneId ZONA = ZoneId.of("America/Bogota");
 
@@ -148,6 +156,14 @@ public class SolicitudController {
         if (((Number) s.get("idCliente")).longValue() == idDomiciliario) {
             throw new IllegalArgumentException("Un domiciliario no puede atender su propia solicitud.");
         }
+        Integer activas = jdbc.queryForObject("""
+                SELECT COUNT(*) FROM Solicitud
+                WHERE idDomiciliario = ? AND idEstadoSolicitud IN (?, ?) AND numeroSolicitud <> ?""",
+                Integer.class, idDomiciliario, ASIGNADA, EN_CURSO, numero);
+        if (activas != null && activas >= MAX_SOLICITUDES_ACTIVAS) {
+            throw new IllegalArgumentException(
+                    "El domiciliario ya tiene " + MAX_SOLICITUDES_ACTIVAS + " solicitudes activas.");
+        }
 
         LocalDateTime ahora = LocalDateTime.now(ZONA).withNano(0);
         jdbc.update("""
@@ -194,12 +210,27 @@ public class SolicitudController {
         return buscar(numero);
     }
 
-    /** Borra primero los incidentes de la solicitud (por la llave foránea) y luego la solicitud. */
+    /**
+     * Historial de cambios de la solicitud (tabla AuditoriaSolicitud, Entrega 4).
+     * Usa el procedimiento almacenado sp_historial_solicitud.
+     */
+    @GetMapping("/{numero}/historial")
+    public List<Map<String, Object>> historial(@PathVariable("numero") long numero) {
+        return Filas.normalizar(jdbc.queryForList("CALL sp_historial_solicitud(?)", numero));
+    }
+
+    /**
+     * Borra primero los incidentes y el historial de auditoría de la solicitud (por sus llaves
+     * foráneas) y luego la solicitud.
+     */
     @DeleteMapping("/{numero}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Transactional
     public void eliminar(@PathVariable("numero") long numero) {
         jdbc.update("DELETE FROM Incidente WHERE numeroSolicitud = ?", numero);
+        if (Filas.existeTabla(jdbc, "AuditoriaSolicitud")) {
+            jdbc.update("DELETE FROM AuditoriaSolicitud WHERE numeroSolicitud = ?", numero);
+        }
         if (jdbc.update("DELETE FROM Solicitud WHERE numeroSolicitud = ?", numero) == 0) {
             throw new NoEncontradoException("No existe la solicitud " + numero + ".");
         }
@@ -230,8 +261,8 @@ public class SolicitudController {
             throw new IllegalArgumentException(
                     "La solicitud no puede tener a la vez un establecimiento y una dirección externa de recogida.");
         }
-        if (monto.signum() < 0) {
-            throw new IllegalArgumentException("El monto total no puede ser negativo.");
+        if (monto.signum() <= 0) {
+            throw new IllegalArgumentException("El monto total debe ser mayor que 0.");
         }
 
         // Regla 2: la dirección de entrega pertenece al cliente
